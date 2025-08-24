@@ -34,15 +34,15 @@ h1 { color: #0077b6; font-size: 28px; margin-bottom: 15px; text-align: center; d
 .astro-card button{background:#0077b6;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;}
 .hidden{display:none;}
 
-.news-card{background:#f9f9f9;padding:15px;margin-bottom:10px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-.news-card a{font-weight:bold;color:#023e8a;text-decoration:none;}
+.news-card{background:#f9f9f9;padding:15px;border-radius:8px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+.news-card a{color:#0077b6;text-decoration:none;font-weight:bold;}
 .news-card a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
 <div class="container">
   <h1>
-    Météo Lombard (Doubs, 25) & Astro & News
+    Météo Lombard (Doubs, 25), Astro & News
     <span id="heureTemp" style="font-size:18px;color:#023e8a;"></span>
   </h1>
 
@@ -67,12 +67,13 @@ h1 { color: #0077b6; font-size: 28px; margin-bottom: 15px; text-align: center; d
 
   <!-- NEWS -->
   <div id="newsPage" class="hidden">
-    <div id="news">Chargement des actualités...</div>
+    <h2>📰 Actualités</h2>
+    <div id="news">Chargement...</div>
   </div>
 </div>
 
 <script>
-/* ---------------- METEO ---------------- */
+/* ================== METEO ================== */
 const apiKey="94cda3c9bb1b4bd2855a9bf818f7d30a";
 const ville="Lombard,FR";
 const urlForecast=`https://api.openweathermap.org/data/2.5/forecast?q=${ville}&units=metric&lang=fr&appid=${apiKey}`;
@@ -80,11 +81,14 @@ const urlCurrent=`https://api.openweathermap.org/data/2.5/weather?q=${ville}&uni
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
 
 function couleurTemperature(temp){if(temp<=0)return'#00bfff';if(temp<=10)return'#1e90ff';if(temp<=20)return'#3cb371';if(temp<=25)return'#ffa500';return'#ff4500';}
-function couleurSoleil(heure){if(heure>=5 && heure<8)return'#FF4500';if(heure>=8 && heure<17)return'#FFD700';if(heure>=17 && heure<22)return'#FF8C00';return'#1e90ff';}
+function couleurSoleil(heure){if(heure>=5&&heure<8)return'#FF4500';if(heure>=8&&heure<17)return'#FFD700';if(heure>=17&&heure<22)return'#FF8C00';return'#1e90ff';}
 function classeIcone(desc,icon){if(icon.includes('01'))return'soleil';if(icon.includes('02')||icon.includes('03')||icon.includes('04'))return'nuage';if(icon.includes('09')||icon.includes('10')||icon.includes('11'))return'pluie';return'';}
 function updateHeureTemp(temp){const now=new Date();const h=now.getHours().toString().padStart(2,'0');const m=now.getMinutes().toString().padStart(2,'0');document.getElementById('heureTemp').innerText=`${h}:${m} - ${temp}°C`;}
 
+// METEO COURANTE
 fetch(urlCurrent).then(res=>res.json()).then(data=>{updateHeureTemp(Math.round(data.main.temp));});
+
+// METEO FORECAST
 fetch(urlForecast).then(res=>res.json()).then(data=>{
   const jours={};
   data.list.forEach(item=>{
@@ -109,20 +113,20 @@ fetch(urlForecast).then(res=>res.json()).then(data=>{
   document.getElementById("meteo").innerHTML=html;
 });
 
-/* ---------------- ASTRO ---------------- */
+/* ================== ASTRO ================== */
 const signesAPI = { belier:'aries', gemeaux:'gemini', verseau:'aquarius', balance:'libra' };
-function lireAstro(sign){ const texte=document.querySelector(`#${sign} p`).innerText; const synth=window.speechSynthesis; const utter=new SpeechSynthesisUtterance(texte); utter.lang="fr-FR"; synth.speak(utter);}
+function lireAstro(sign){const texte=document.querySelector(`#${sign} p`).innerText;const synth=window.speechSynthesis;const utter=new SpeechSynthesisUtterance(texte);utter.lang="fr-FR";synth.speak(utter);}
 Object.keys(signesAPI).forEach(sign=>{
-  fetch(`https://aztro.sameerkumar.website/?sign=${signesAPI[sign]}&day=today`, { method:'POST' })
+  fetch(`https://aztro.sameerkumar.website/?sign=${signesAPI[sign]}&day=today`,{method:'POST'})
     .then(res=>res.json())
-    .then(data=>{ document.querySelector(`#${sign} p`).innerText=data.description; })
-    .catch(()=>{ document.querySelector(`#${sign} p`).innerText="Impossible de récupérer l'horoscope du jour."; });
+    .then(data=>{document.querySelector(`#${sign} p`).innerText=data.description;})
+    .catch(()=>{document.querySelector(`#${sign} p`).innerText="Impossible de récupérer l'horoscope du jour.";});
 });
 
-/* ---------------- NEWS via GNews.io ---------------- */
-const newsApiKey = "fa8b23b2b6ac4d009c1cb31ad933290a"; // 👉 Remplace par ta clé GNews.io
-const newsUrl = `https://gnews.io/api/v4/top-headlines?lang=fr&country=FR&apikey=${newsApiKey}`;
-const importantKeywords = ["France", "Économie", "Politique", "International", "Santé", "Éducation"];
+/* ================== NEWS ================== */
+const newsApiKey = "fa8b23b2b6ac4d009c1cb31ad933290a"; // <<<<< mets ta clé ici
+const newsUrl = `https://gnews.io/api/v4/top-headlines?lang=fr&country=fr&apikey=${newsApiKey}`;
+const importantKeywords = ["France","Économie","Politique","International","Santé","Éducation"];
 
 function chargerNews(){
   fetch(newsUrl)
@@ -130,10 +134,11 @@ function chargerNews(){
     .then(data=>{
       const container=document.getElementById("news");
       container.innerHTML="";
-      const importants=[]; const secondaires=[];
+      if(!data.articles){container.innerText="Aucune actualité disponible.";return;}
+      const importants=[],secondaires=[];
       data.articles.forEach(article=>{
         const texte=`${article.title} ${article.description||""}`.toLowerCase();
-        if(importantKeywords.some(k=>texte.includes(k.toLowerCase()))){importants.push(article);} else {secondaires.push(article);}
+        if(importantKeywords.some(k=>texte.includes(k.toLowerCase()))){importants.push(article);}else{secondaires.push(article);}
       });
       const articlesTries=importants.concat(secondaires);
       articlesTries.forEach(article=>{
@@ -143,24 +148,36 @@ function chargerNews(){
         container.appendChild(div);
       });
     })
-    .catch(err=>{
-      document.getElementById("news").innerText="Impossible de charger les actualités.";
-      console.error(err);
-    });
+    .catch(err=>{document.getElementById("news").innerText="Impossible de charger les actualités.";console.error(err);});
 }
 chargerNews();
-setInterval(chargerNews, 30*60*1000);
+setInterval(chargerNews,30*60*1000);
 
-/* ---------------- NAVIGATION ---------------- */
-function switchPage(showId,btnId){
-  ["meteoPage","astroPage","newsPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
-  ["btnMeteo","btnAstro","btnNews"].forEach(id=>document.getElementById(id).classList.remove("active"));
-  document.getElementById(showId).classList.remove("hidden");
-  document.getElementById(btnId).classList.add("active");
-}
-document.getElementById("btnMeteo").addEventListener("click",()=>switchPage("meteoPage","btnMeteo"));
-document.getElementById("btnAstro").addEventListener("click",()=>switchPage("astroPage","btnAstro"));
-document.getElementById("btnNews").addEventListener("click",()=>switchPage("newsPage","btnNews"));
+/* ================== NAVIGATION ================== */
+document.getElementById("btnMeteo").addEventListener("click",()=>{
+  document.getElementById("meteoPage").classList.remove("hidden");
+  document.getElementById("astroPage").classList.add("hidden");
+  document.getElementById("newsPage").classList.add("hidden");
+  document.getElementById("btnMeteo").classList.add("active");
+  document.getElementById("btnAstro").classList.remove("active");
+  document.getElementById("btnNews").classList.remove("active");
+});
+document.getElementById("btnAstro").addEventListener("click",()=>{
+  document.getElementById("astroPage").classList.remove("hidden");
+  document.getElementById("meteoPage").classList.add("hidden");
+  document.getElementById("newsPage").classList.add("hidden");
+  document.getElementById("btnAstro").classList.add("active");
+  document.getElementById("btnMeteo").classList.remove("active");
+  document.getElementById("btnNews").classList.remove("active");
+});
+document.getElementById("btnNews").addEventListener("click",()=>{
+  document.getElementById("newsPage").classList.remove("hidden");
+  document.getElementById("astroPage").classList.add("hidden");
+  document.getElementById("meteoPage").classList.add("hidden");
+  document.getElementById("btnNews").classList.add("active");
+  document.getElementById("btnMeteo").classList.remove("active");
+  document.getElementById("btnAstro").classList.remove("active");
+});
 </script>
 </body>
 </html>
